@@ -20,7 +20,8 @@ DB_PATH = "weight_log.db"
 TABLE = "weight_log"
 
 def get_conn():
-    return sqlite3.connect(DB_PATH, check_same_thread = False)
+    # TIMEOUT ADDED: Waits 10s if db is locked before crashing
+    return sqlite3.connect(DB_PATH, check_same_thread = False, timeout = 10)
 
 def init_db():
     conn = get_conn()
@@ -38,6 +39,9 @@ init_db()
 
 def get_ai_response(user_prompt, context):
     api = st.secrets['GROQ_API_KEY']
+    # SAFETY CHECK
+    if not api:
+        return "❌ ERROR: GROQ_API_KEY not found in secrets."
     if api:
         try:
             client = Groq(api_key = api)
@@ -84,6 +88,8 @@ with st.sidebar.form("entry_form"):
     weight_input = st.number_input("Weight (kg):", step=0.1, format="%.1f", value = 80.0)
     date_input = st.date_input("Date:", value=dt.date.today())
     submit_log = st.form_submit_button("LOG ENTRY")
+    if weight_input < 40 or weight_input > 150:
+        st.sidebar.error(f"⚠️ REJECTED: {weight_input}kg is unlikely. Check input.")
 
 st.sidebar.divider()
 
@@ -101,23 +107,24 @@ if enable_goals:
 # ==========================================
 # A. Handle New Log Entry
 if submit_log:
-    try:
-        conn = get_conn()
+    if 40 <= weight_input <= 150:
+        try:
+            conn = get_conn()
 
-        conn.execute(f"""
-            INSERT OR REPLACE into {TABLE}(date, weight)
-            VALUES(?,?)
-        """, (date_input, weight_input))
-        conn.commit()
-        conn.close()
+            conn.execute(f"""
+                INSERT OR REPLACE into {TABLE}(date, weight)
+                VALUES(?,?)
+            """, (date_input, weight_input))
+            conn.commit()
+            conn.close()
 
-        st.sidebar.success("✅ Saved to SQL")
-        time.sleep(0.5)
+            st.sidebar.success("✅ Saved to SQL")
+            time.sleep(0.5)
 
-    except Exception as e:
-        st.sidebar.error(f"Error: {e}")
+        except Exception as e:
+            st.sidebar.error(f"Error: {e}")
 
-    st.rerun()
+        st.rerun()
 # B. Load & Prep Data
 try:
     conn = get_conn()
