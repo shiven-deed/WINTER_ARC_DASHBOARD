@@ -1,0 +1,52 @@
+# LIFE OS DASHBOARD — MASTER CONTEXT
+
+## 1. PROJECT IDENTITY
+Name: Life OS Dashboard
+Purpose: AI-powered weight-loss intelligence system
+Demo Date: Jan 12, 2026
+User: 20-year-old engineering student, Bihar, India
+Protocol: Winter Arc (Delayed Dopamine enforced)
+
+## 2. TECH STACK
+Frontend: Streamlit
+Backend: Python
+Database: SQLite (with timeout handling)
+ML: Linear Regression (trend prediction)
+AI: Groq LLM (context-aware coach)
+Data: Daily weight logs (date, weight)
+
+## 3. CORE FEATURES (IMPLEMENTED)
+- SQLite CRUD (Create/Read/Update/Delete)
+- Input validation (40–150 kg)
+- CSV export
+- Rolling 7-day average
+- Linear regression trendline
+- Goal slope calculation
+- Visual chart:
+  - Actual weights
+  - Trendline
+  - Ideal path
+- Groq AI Coach with context:
+  - Days since last log
+  - Weekly average
+  - Last 3 logs
+  - Trend direction
+  - Roasts if AWOL > 3 days
+
+## 4. CURRENT PHASE
+Phase 8 — Battlefield Polish
+Focus:
+- Edge-case handling
+- UI/UX cleanup
+- Demo readiness
+
+## 5. KNOWN EDGE CASES
+- Empty DB crash
+- 1–2 data points regression issues
+- Date filter bugs
+- Coach context failing when no data
+
+## 6. NON-NEGOTIABLE RULES
+- No leasure unless coding task completed
+- Explain WHY + HOW + WHAT with code
+- No feature creep before demo
