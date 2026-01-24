@@ -1,6 +1,7 @@
 # ==========================================
 # 1. SETUP & CONFIGURATION
 # ==========================================
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -17,20 +18,21 @@ from db import (
     delete_log,
     delete_all
 )
+# GETTING API KEY
+import os
+
+groq = os.getenv('GROQ_API_KEY')
+if not groq: 
+    st.error("❌ ERROR: GROQ_API_KEY missing.")
+    st.stop()
 
 st.set_page_config(page_title="WINTER ARC DASHBOARD", layout="centered")
 st.title("❄️ WINTER ARC")
 
-FILE_PATH = "weight_log.csv"
-DB_PATH = "weight_log.db"
-TABLE = "weight_log"
-
 init_db()
 
 def get_ai_response(user_prompt, coach_mode, days_since_log, weight_change):
-    api = st.secrets['GROQ_API_KEY']
-    if not api: return "❌ ERROR: GROQ_API_KEY missing."
-    
+    api = groq
     try:
         client = Groq(api_key=api)
 
@@ -254,11 +256,13 @@ with st.expander("VIEW & EDIT HISTORY"):
     col1, col2 = st.columns(2) # MAKING COLUMNS FOR INPUT
     start_date = col1.date_input("Start date", min_date)
     end_date = col2.date_input("End date", max_date)
-    mask = (df['date'].dt.date >= start_date) & (df['date'].dt.date <= end_date) # MASKING FOR FILTER
-    filtered_date = df.loc[mask][['date', 'weight']]
-
-    st.write(f"Showing {len(filtered_date)} entries: ") # DISPLAY
-    st.dataframe(filtered_date.style.format({'date': lambda x: x.strftime("%Y-%m-%d"), 'weight': '{:.1f}'}))
+    if min_date <= start_date and end_date <= max_date and start_date < end_date:    
+        mask = (df['date'].dt.date >= start_date) & (df['date'].dt.date <= end_date) # MASKING FOR FILTER
+        filtered_date = df.loc[mask][['date', 'weight']]
+        st.write(f"Showing {len(filtered_date)} entries: ") # DISPLAY
+        st.dataframe(filtered_date.style.format({'date': lambda x: x.strftime("%Y-%m-%d"), 'weight': '{:.1f}'}))
+    else:
+        st.error("Invalid Date Range!!")
 
     # B. DELETE INTERFACE
     delete_option = (df.apply(lambda x: f"{x['date'].strftime("%Y-%m-%d")} | {x['weight']}", axis = 1)).to_list()[::-1]

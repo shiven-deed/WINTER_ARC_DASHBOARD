@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
+import datetime as dt
 
-df = pd.read_csv("weight_log.csv")
-delete = (df.apply(lambda x: f"Select {x['date']} | {x['weight']}", axis =1)).to_list()[::-1]
-print(delete)
+d = pd.to_datetime("Jan 13 2025")
+print(d)
+df = d - dt.timedelta(days=14)
+print(df)
