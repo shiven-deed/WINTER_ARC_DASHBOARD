@@ -265,7 +265,11 @@ with st.expander("VIEW & EDIT HISTORY"):
         st.error("Invalid Date Range!!")
 
     # B. DELETE INTERFACE
-    delete_option = (df.apply(lambda x: f"{x['date'].strftime("%Y-%m-%d")} | {x['weight']}", axis = 1)).to_list()[::-1]
+    delete_option = (
+        df.apply(lambda x: f"{x['id']} | {x['date'].strftime("%Y-%m-%d")} | {x['weight']}",
+                axis = 1
+        )
+    ).to_list()[::-1]
     selected_option = st.selectbox(
             "Select entry to delete: ",
             options = delete_option,
@@ -273,8 +277,8 @@ with st.expander("VIEW & EDIT HISTORY"):
             placeholder = "Select an entry ..."
     )
     if selected_option:
-        if st.button(f"🗑️ PERMANENTLY DELETE {selected_option.split(" | ")[0]}"):
-            delete_key = selected_option.split(" | ")[0]
+        if st.button(f"🗑️ PERMANENTLY DELETE :- {selected_option.split(" | ")[1]}"):
+            delete_key = int(selected_option.split(" | ")[0])
 
             try:
                 delete_log(delete_key)

@@ -26,7 +26,8 @@ def init_db():
 def insert_or_update_log(date, weight):
     conn = get_conn()
     conn.execute(f"""
-        INSERT OR REPLACE INTO {TABLE} (date, weight) VALUES (?,?)
+        INSERT INTO {TABLE} (date, weight) VALUES (?,?)
+        ON CONFLICT(date) DO UPDATE SET weight = excluded.weight
     """,
     (date, weight)
     )
@@ -35,13 +36,13 @@ def insert_or_update_log(date, weight):
 
 def load_all_logs():
     conn = get_conn()
-    df = pd.read_sql(f"SELECT * FROM {TABLE} ORDER BY date ASC", conn)
+    df = pd.read_sql(f"SELECT id, weight, date FROM {TABLE} ORDER BY date ASC", conn)
     conn.close()
     return df
 
 def delete_log(date):
     conn = get_conn()
-    conn.execute(f"DELETE FROM {TABLE} where date = ?", (date,)
+    conn.execute(f"DELETE FROM {TABLE} where id = ?", (id,)
     )
     conn.commit()
     conn.close()
