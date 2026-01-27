@@ -40,7 +40,7 @@ def load_all_logs():
     conn.close()
     return df
 
-def delete_log(date):
+def delete_log(id):
     conn = get_conn()
     conn.execute(f"DELETE FROM {TABLE} where id = ?", (id,)
     )
