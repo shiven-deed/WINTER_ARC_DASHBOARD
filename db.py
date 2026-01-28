@@ -1,37 +1,41 @@
-import sqlite3
+import os
+import psycopg2
 import pandas as pd
 
-DB_PATH = "weight_log.db"
+DB_URL = os.getenv("DATABASE_URL")
+if not DB_URL:
+    raise RuntimeError("Database not set")
+
 TABLE = "weight_log"
 
 def get_conn():
-    return sqlite3.connect(
-        DB_PATH,
-        check_same_thread = False,
-        timeout = 10
-        )
+    return psycopg2.connect(DB_URL)
 
 def init_db():
     conn = get_conn()
-    conn.execute(f"""
+    cur = conn.cursor()
+    cur.execute(f"""
         CREATE TABLE IF NOT EXISTS {TABLE}(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id SERIAL PRIMARY KEY,
         weight REAL NOT NULL,
-        date TEXT NOT NULL UNIQUE
+        date DATE NOT NULL UNIQUE
         );
     """)
     conn.commit()
+    cur.close()
     conn.close()
 
 def insert_or_update_log(date, weight):
     conn = get_conn()
-    conn.execute(f"""
-        INSERT INTO {TABLE} (date, weight) VALUES (?,?)
-        ON CONFLICT(date) DO UPDATE SET weight = excluded.weight
+    cur = conn.cursor()
+    cur.execute(f"""
+        INSERT INTO {TABLE} (date, weight) VALUES (%s,%s)
+        ON CONFLICT(date) DO UPDATE SET weight = EXCLUDED.weight;
     """,
     (date, weight)
     )
     conn.commit()
+    cur.close()
     conn.close()
 
 def load_all_logs():
@@ -40,15 +44,19 @@ def load_all_logs():
     conn.close()
     return df
 
-def delete_log(id):
+def delete_log(log_id):
     conn = get_conn()
-    conn.execute(f"DELETE FROM {TABLE} where id = ?", (id,)
+    cur = conn.cursor()
+    cur.execute(f"DELETE FROM {TABLE} where id = %s", (log_id,)
     )
     conn.commit()
+    cur.close()
     conn.close()
 
 def delete_all():
     conn = get_conn()
-    conn.execute(f"DELETE FROM {TABLE}")
+    cur = conn.cursor()
+    cur.execute(f"DELETE FROM {TABLE}")
     conn.commit()
+    cur.close()
     conn.close()
