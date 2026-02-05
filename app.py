@@ -133,7 +133,6 @@ try:
     if df.empty:
         st.subheader("Welcome to the WINTER ARC")
         st.subheader("Enter your first weight to get started!")
-        ⚠️ Database is empty. Log your first weight!")
         st.stop()
 
     df['date'] = pd.to_datetime(df['date'])
