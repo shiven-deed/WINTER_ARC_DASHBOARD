@@ -131,7 +131,9 @@ if submit_log:
 try:
     df = load_all_logs()
     if df.empty:
-        st.warning("⚠️ Database is empty. Log your first weight!")
+        st.subheader("Welcome to the WINTER ARC")
+        st.subheader("Enter your first weight to get started!")
+        ⚠️ Database is empty. Log your first weight!")
         st.stop()
 
     df['date'] = pd.to_datetime(df['date'])
