@@ -131,8 +131,9 @@ if submit_log:
 try:
     df = load_all_logs()
     if df.empty:
-        st.subheader("Welcome to the WINTER ARC")
-        st.subheader("Enter your first weight to get started!")
+        st.markdown("# :green[Welcome to the WINTER ARC]")
+        st.markdown("### :blue[Use the sidebar to enter your first weight to get started!]")
+        st.divider()
         st.stop()
 
     df['date'] = pd.to_datetime(df['date'])
