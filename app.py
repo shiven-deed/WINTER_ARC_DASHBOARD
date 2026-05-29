@@ -213,7 +213,7 @@ status = "⚪ NO GOAL SET" # Default
 if enable_goals:
     days_left = (goal_date - today).days
     
-    if days_left <= 0:
+    if days_left < 0:
         required_slope = 0
     else:
         required_slope = (goal_weight - current_weight) / days_left
