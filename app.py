@@ -1,6 +1,4 @@
-# ==========================================
 # 1. SETUP & CONFIGURATION
-# ==========================================
 
 import streamlit as st
 import pandas as pd
@@ -36,7 +34,7 @@ def get_ai_response(user_prompt, coach_mode, days_since_log, weight_change):
     try:
         client = Groq(api_key=api)
 
-        # --- LOGIC SPLIT ---
+        # LOGIC SPLIT
         if coach_mode == "BAD":
             # LAZY MODE (User hasn't logged)
             system_prompt = f"""
@@ -103,6 +101,35 @@ with st.sidebar.form("entry_form"):
 
 st.sidebar.divider()
 
+# -- QUICK START DEMO BLOCK --
+st.sidebar.header("🚀 QUICK START DEMO")
+st.sidebar.markdown("*Recruiter? Click below to instantly inject 7 days of sample data to view the predictive modeling.*")
+
+if st.sidebar.button("LOAD DEMO DATA"):
+    with st.sidebar.status("Injecting sample data...") as status:
+        # Dynamic dates so the demo always looks recent
+        today = pd.Timestamp.now().date()
+        demo_data = [
+            {"date": today - dt.timedelta(days=7), "weight": 82.5},
+            {"date": today - dt.timedelta(days=6), "weight": 82.1},
+            {"date": today - dt.timedelta(days=5), "weight": 81.8},
+            {"date": today - dt.timedelta(days=4), "weight": 81.5},
+            {"date": today - dt.timedelta(days=3), "weight": 80.9},
+            {"date": today - dt.timedelta(days=2), "weight": 80.6},
+            {"date": today - dt.timedelta(days=1), "weight": 80.2},
+        ]
+        
+        try:
+            for entry in demo_data:
+                insert_or_update_log(entry['date'], entry['weight'])
+            status.update(label="Demo Data Loaded!", state="complete")
+            time.sleep(1)
+            st.rerun()
+        except Exception as e:
+            st.sidebar.error(f"Error loading demo: {e}")
+
+st.sidebar.divider()
+
 st.sidebar.header("🎯 GOAL SETTINGS")
 enable_goals = st.sidebar.checkbox("Enable Goal Tracking")
 
@@ -112,9 +139,8 @@ if enable_goals:
     # Convert to timestamp immediately for math
     goal_date = pd.to_datetime(goal_date)
 
-# ==========================================
 # 3. DATA PROCESSING (The "Brain")
-# ==========================================
+
 # A. Handle New Log Entry
 if submit_log:
     if 40 <= weight_input <= 150 and date_input <= pd.Timestamp.now().date():
@@ -127,6 +153,7 @@ if submit_log:
             st.sidebar.error(f"Error: {e}")
 
         st.rerun()
+
 # B. Load & Prep Data
 try:
     df = load_all_logs()
@@ -156,6 +183,7 @@ if n>0:
         coach_mode = "GOOD"
 else:
     days_since_log = 0
+
 # 2. TOTAL LOSS IN WEIGHT
 weekly_avg = df['weight'].tail(7).mean() if n >= 2 else df['weight'].iloc[-1]
 last_w = df['weight'].iloc[-1]
@@ -191,9 +219,8 @@ if enable_goals:
         
     status = "✅ ON TRACK" if actual_slope <= required_slope else "⚠️ OFF TRACK"
 
-# ==========================================
 # 4. VISUALIZATION (The "Face")
-# ==========================================
+
 st.divider()
 
 # A. Key Metrics
@@ -234,6 +261,7 @@ if enable_goals:
     start_date = df['date'].iloc[0]
     start_weight = df['weight'].iloc[0]
     ax.plot([start_date, goal_date], [start_weight, goal_weight], color='green', alpha = 0.8, linestyle=':', linewidth=2, label='Ideal')
+
 # 4. ROLLING AVG(ORANGE DASHED)
 ax.plot(df['date'], df['rolling_avg'], alpha = 1, color = 'orange', linewidth = 2, linestyle = '-', label = 'smoothing')
 
