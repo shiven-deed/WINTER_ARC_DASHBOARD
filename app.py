@@ -134,6 +134,7 @@ st.sidebar.header("🎯 GOAL SETTINGS")
 enable_goals = st.sidebar.checkbox("Enable Goal Tracking")
 
 if enable_goals:
+    today = pd.Timestamp.now().date()
     goal_weight = st.sidebar.number_input("Target Weight (kg):", value=75, step=1)
     goal_date = st.sidebar.date_input("Target Date:", value=today)
     # Convert to timestamp immediately for math
