@@ -101,36 +101,6 @@ with st.sidebar.form("entry_form"):
 
 st.sidebar.divider()
 
-# -- QUICK START DEMO BLOCK --
-if(df.empty):
-    st.sidebar.header("QUICK START DEMO")
-    st.sidebar.markdown("*Recruiter? Click below to instantly inject 7 days of sample data to view the predictive modeling.*")
-    
-    if st.sidebar.button("LOAD DEMO DATA"):
-        with st.sidebar.status("Injecting sample data...") as status:
-            # Dynamic dates so the demo always looks recent
-            today = pd.Timestamp.now().date()
-            demo_data = [
-                {"date": today - dt.timedelta(days=7), "weight": 82.5},
-                {"date": today - dt.timedelta(days=6), "weight": 82.1},
-                {"date": today - dt.timedelta(days=5), "weight": 81.8},
-                {"date": today - dt.timedelta(days=4), "weight": 81.5},
-                {"date": today - dt.timedelta(days=3), "weight": 80.9},
-                {"date": today - dt.timedelta(days=2), "weight": 80.6},
-                {"date": today - dt.timedelta(days=1), "weight": 80.2},
-            ]
-            
-            try:
-                for entry in demo_data:
-                    insert_or_update_log(entry['date'], entry['weight'])
-                status.update(label="Demo Data Loaded!", state="complete")
-                time.sleep(1)
-                st.rerun()
-            except Exception as e:
-                st.sidebar.error(f"Error loading demo: {e}")
-    
-    st.sidebar.divider()
-
 st.sidebar.header("GOAL SETTINGS")
 enable_goals = st.sidebar.checkbox("Enable Goal Tracking")
 
@@ -164,6 +134,34 @@ try:
         st.markdown("### :blue[Use the sidebar to enter your first weight to get started!]")
         st.divider()
         st.stop()
+        # -- QUICK START DEMO BLOCK --
+        st.sidebar.header("QUICK START DEMO")
+        st.sidebar.markdown("*Recruiter? Click below to instantly inject 7 days of sample data to view the predictive modeling.*")
+        
+        if st.sidebar.button("LOAD DEMO DATA"):
+            with st.sidebar.status("Injecting sample data...") as status:
+                # Dynamic dates so the demo always looks recent
+                today = pd.Timestamp.now().date()
+                demo_data = [
+                    {"date": today - dt.timedelta(days=7), "weight": 82.5},
+                    {"date": today - dt.timedelta(days=6), "weight": 82.1},
+                    {"date": today - dt.timedelta(days=5), "weight": 81.8},
+                    {"date": today - dt.timedelta(days=4), "weight": 81.5},
+                    {"date": today - dt.timedelta(days=3), "weight": 80.9},
+                    {"date": today - dt.timedelta(days=2), "weight": 80.6},
+                    {"date": today - dt.timedelta(days=1), "weight": 80.2},
+                ]
+                
+                try:
+                    for entry in demo_data:
+                        insert_or_update_log(entry['date'], entry['weight'])
+                    status.update(label="Demo Data Loaded!", state="complete")
+                    time.sleep(1)
+                    st.rerun()
+                except Exception as e:
+                    st.sidebar.error(f"Error loading demo: {e}")
+        
+        st.sidebar.divider()
 
     df['date'] = pd.to_datetime(df['date'])
     df['rolling_avg'] = df['weight'].rolling(window = 7, min_periods = 2).mean()
