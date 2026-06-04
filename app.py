@@ -21,7 +21,7 @@ import os
 
 groq = os.getenv('GROQ_API_KEY')
 if not groq: 
-    st.error("❌ ERROR: GROQ_API_KEY missing.")
+    st.error("ERROR: GROQ_API_KEY missing.")
     st.stop()
 
 st.set_page_config(page_title="WINTER ARC DASHBOARD", layout="centered")
@@ -89,48 +89,49 @@ def get_ai_response(user_prompt, coach_mode, days_since_log, weight_change):
 # ==========================================
 # 2. SIDEBAR (INPUTS)
 # ==========================================
-st.sidebar.header("📝 LOG DATA")
+st.sidebar.header("LOG DATA")
 with st.sidebar.form("entry_form"):
     weight_input = st.number_input("Weight (kg):", step=0.1, format="%.1f", value = 80.0)
     date_input = st.date_input("Date:", value=dt.date.today())
     submit_log = st.form_submit_button("LOG ENTRY")
     if date_input > pd.Timestamp.now().date():
-        st.sidebar.error(f"⚠️ REJECTED: {date_input} is of the future. Check input.")
+        st.sidebar.error(f"REJECTED: {date_input} is of the future. Check input.")
     if weight_input < 40 or weight_input > 150:
-        st.sidebar.error(f"⚠️ REJECTED: {weight_input}kg is unlikely. Check input.")
+        st.sidebar.error(f"REJECTED: {weight_input}kg is unlikely. Check input.")
 
 st.sidebar.divider()
 
 # -- QUICK START DEMO BLOCK --
-st.sidebar.header("🚀 QUICK START DEMO")
-st.sidebar.markdown("*Recruiter? Click below to instantly inject 7 days of sample data to view the predictive modeling.*")
+if(df.empty):
+    st.sidebar.header("QUICK START DEMO")
+    st.sidebar.markdown("*Recruiter? Click below to instantly inject 7 days of sample data to view the predictive modeling.*")
+    
+    if st.sidebar.button("LOAD DEMO DATA"):
+        with st.sidebar.status("Injecting sample data...") as status:
+            # Dynamic dates so the demo always looks recent
+            today = pd.Timestamp.now().date()
+            demo_data = [
+                {"date": today - dt.timedelta(days=7), "weight": 82.5},
+                {"date": today - dt.timedelta(days=6), "weight": 82.1},
+                {"date": today - dt.timedelta(days=5), "weight": 81.8},
+                {"date": today - dt.timedelta(days=4), "weight": 81.5},
+                {"date": today - dt.timedelta(days=3), "weight": 80.9},
+                {"date": today - dt.timedelta(days=2), "weight": 80.6},
+                {"date": today - dt.timedelta(days=1), "weight": 80.2},
+            ]
+            
+            try:
+                for entry in demo_data:
+                    insert_or_update_log(entry['date'], entry['weight'])
+                status.update(label="Demo Data Loaded!", state="complete")
+                time.sleep(1)
+                st.rerun()
+            except Exception as e:
+                st.sidebar.error(f"Error loading demo: {e}")
+    
+    st.sidebar.divider()
 
-if st.sidebar.button("LOAD DEMO DATA"):
-    with st.sidebar.status("Injecting sample data...") as status:
-        # Dynamic dates so the demo always looks recent
-        today = pd.Timestamp.now().date()
-        demo_data = [
-            {"date": today - dt.timedelta(days=7), "weight": 82.5},
-            {"date": today - dt.timedelta(days=6), "weight": 82.1},
-            {"date": today - dt.timedelta(days=5), "weight": 81.8},
-            {"date": today - dt.timedelta(days=4), "weight": 81.5},
-            {"date": today - dt.timedelta(days=3), "weight": 80.9},
-            {"date": today - dt.timedelta(days=2), "weight": 80.6},
-            {"date": today - dt.timedelta(days=1), "weight": 80.2},
-        ]
-        
-        try:
-            for entry in demo_data:
-                insert_or_update_log(entry['date'], entry['weight'])
-            status.update(label="Demo Data Loaded!", state="complete")
-            time.sleep(1)
-            st.rerun()
-        except Exception as e:
-            st.sidebar.error(f"Error loading demo: {e}")
-
-st.sidebar.divider()
-
-st.sidebar.header("🎯 GOAL SETTINGS")
+st.sidebar.header("GOAL SETTINGS")
 enable_goals = st.sidebar.checkbox("Enable Goal Tracking")
 
 if enable_goals:
@@ -147,7 +148,7 @@ if submit_log:
     if 40 <= weight_input <= 150 and date_input <= pd.Timestamp.now().date():
         try:
             insert_or_update_log(date_input, weight_input)
-            st.sidebar.success("✅ Saved to SQL")
+            st.sidebar.success("Saved to SQL")
             time.sleep(0.5)
 
         except Exception as e:
@@ -209,7 +210,7 @@ current_weight = df['weight'].iloc[-1]
 actual_slope = model.coef_[0]
 
 # Required Slope Math (Only if Goals are Enabled)
-status = "⚪ NO GOAL SET" # Default
+status = "NO GOAL SET" # Default
 if enable_goals:
     days_left = (goal_date - today).days
     
@@ -218,7 +219,7 @@ if enable_goals:
     else:
         required_slope = (goal_weight - current_weight) / days_left
         
-    status = "✅ ON TRACK" if actual_slope <= required_slope else "⚠️ OFF TRACK"
+    status = "ON TRACK" if actual_slope <= required_slope else "OFF TRACK"
 
 # 4. VISUALIZATION (The "Face")
 
@@ -233,9 +234,9 @@ future_ordinal_14 = (pd.Timestamp.now() + dt.timedelta(days=14)).toordinal()
 pred_14 = model.predict([[future_ordinal_14]])[0]
 col2.metric("Predicted (14 Days)", f"{pred_14:.1f} kg")
 
-if status == "✅ ON TRACK":
+if status == "ON TRACK":
     col3.success(status)
-elif status == "⚠️ OFF TRACK":
+elif status == "OFF TRACK":
     col3.error(status)
 else:
     col3.info(status)
@@ -277,7 +278,7 @@ st.pyplot(fig)
 
 # C. Raw Data Table (Expander to keep UI clean)
 st.divider()
-st.subheader("🛠️ Manage Data")
+st.subheader("Manage Data")
 
 with st.expander("VIEW & EDIT HISTORY"):
     # A. DATE RANGE FILTER
@@ -308,13 +309,13 @@ with st.expander("VIEW & EDIT HISTORY"):
             placeholder = "Select an entry ..."
     )
     if selected_option:
-        if st.button(f"🗑️ PERMANENTLY DELETE :- {selected_option.split(" | ")[1]}"):
+        if st.button(f"PERMANENTLY DELETE :- {selected_option.split(" | ")[1]}"):
             delete_key = int(selected_option.split(" | ")[0])
 
             try:
                 delete_log(delete_key)
                 time.sleep(1)
-                st.success(f"✅ Deleted entry for {delete_key}")
+                st.success(f"Deleted entry for {delete_key}")
             except Exception as e:
                 st.error(f"Could not delete {selected_option}: {e}")
 
@@ -323,7 +324,7 @@ with st.expander("VIEW & EDIT HISTORY"):
 
 # AI GROQ CALLING
 st.sidebar.divider()
-st.sidebar.header("🤖 WINTER ARC COACH")
+st.sidebar.header("WINTER ARC COACH")
 
 user_query = st.sidebar.text_area("Enter the prompt: ")
 
@@ -343,7 +344,7 @@ clean_df = df[['date', 'weight']].copy()
 download = clean_df.to_csv(index = False).encode('utf-8')
 
 st.download_button(
-    label = '💾 DOWNLOAD BACKUP CSV',
+    label = 'DOWNLOAD BACKUP CSV',
     data = download,
     file_name = 'weight_winter.csv',
     mime = 'text/csv'
@@ -352,7 +353,7 @@ if st.button("DELETE ALL DATA"):
     try: 
         delete_all()
         time.sleep(1)
-        st.success(f"✅ Deleted all entries")
+        st.success(f"Deleted all entries")
     except Exception as e:
         st.error(f"Could not delete, ERROR: {e}")
     st.rerun()
