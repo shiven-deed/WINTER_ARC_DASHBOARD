@@ -103,7 +103,7 @@ st.sidebar.divider()
 
 # -- QUICK START DEMO BLOCK --
 st.sidebar.header("QUICK START DEMO")
-st.sidebar.markdown("*Recruiter? Click below to instantly inject 7 days of sample data to view the predictive modeling.*")
+st.sidebar.markdown("*Click below to instantly inject 7 days of sample data to view the predictive modeling.*")
 
 if st.sidebar.button("LOAD DEMO DATA"):
     with st.sidebar.status("Injecting sample data...") as status:
